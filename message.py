@@ -106,29 +106,27 @@ class Character:
             """)
 
     def selectTarget(self):
-        print(self.team)
+        if len(teams['enemy']) == 1:
+            return teams['enemy'][0]
 
-    def baseAttack(self, target, attackName='ATTACK', damage=None):
+    def baseAttack(self, target=None, attackName='ATTACK', damage=None):
         """
         All attack actions pass by here.
         """
         if target is None:
-            print('[TODO - NO TARGET]')
-            return
-
+            target = self.selectTarget()
         if damage is None:
             damage = self.attack
 
-        target.health -= self.attack
-
-        string = textwrap.dedent(f"""
+        target.health -= damage
+        string = textwrap.dedent(
+            f"""
             [{attackName}]
             {self.nickname} attacks {target.nickname}.
-            Dealt {self.attack} damages.
+            Dealt {damage} damages.
             """)
         string += (f'{target.nickname} now has {target.health} hp.'
                    if target.isAlive else f'{target.nickname} is dead.')
-
         print(string)
 
     def actionAttack(self, target=None):
@@ -136,7 +134,7 @@ class Character:
 
 
 class Warrior(Character):
-    def __init__(self, nickname,  team='neutral', health=40, attack=2, shield=3,):
+    def __init__(self, nickname,  team='neutral', health=40, attack=2, shield=3):
         super().__init__(nickname, health, attack, team)
         self.shield = shield
 
@@ -158,7 +156,8 @@ class Warrior(Character):
         return text + f"shield   : {self.shield}"
 
     def actionShieldSlam(self, target=None):
-        self.baseAttack(target, 'SHIELD SLAM', self.attack+2)
+        dmg = self.attack + 2
+        self.baseAttack(attackName='SHIELD SLAM', damage=dmg)
 
 
 class Zombie(Character):
@@ -199,7 +198,7 @@ def Generate_enemies(enemies):
     for enemy, number in enemies.items():
         for i in range(number):
             if enemy == 'zombie':
-                Zombie(nickname=f'{enemy}{i+1}', attack=30)
+                Zombie(nickname=f'{enemy}{i+1}', attack=10)
             elif enemy == 'skeleton':
                 Skeleton(nickname=f'{enemy}{i+1}')
 
@@ -229,14 +228,16 @@ def Generate_turn_order():
 
 levels = {
     1: {'zombie': 1},
-    # 2: {'zombie': 2, 'skeleton': 1}
+    2: {'zombie': 2, 'skeleton': 1}
 }
 
 player1 = New_Player()
 # print(player1.characterSheet())
 
 # Loop on levels
+levelIndex = 0
 for level, enemies in levels.items():
+    levelIndex += 1
     Generate_enemies(enemies)
     Generate_turn_order()
 
@@ -247,7 +248,6 @@ for level, enemies in levels.items():
         playingCharacter = turn[i % len(turn)]
         playingCharacter.turn()
 
-    print('\n[LEVEL FINISHED]')
-    # should loop on turns while teams.enemies OR teams.friends is not at 0
+    print(f'\n[LEVEL {levelIndex} FINISHED]')
 
 # print(teams)
