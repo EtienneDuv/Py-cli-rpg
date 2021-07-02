@@ -2,9 +2,11 @@ import textwrap
 import random
 import inspect
 
+
 # ----------------------------------
 # CLASSES/CONSTANTS
 # ----------------------------------
+
 
 teams = {'friend': [], 'neutral': [], 'enemy': []}
 turn = []
@@ -75,9 +77,9 @@ class Character:
             # Get only methods
             actionsFunctions = list(actions.values())
 
-            string = textwrap.dedent("[Choose an action]")
+            string = textwrap.dedent('[Choose an action]')
             for i in range(len(actions)):
-                string += f"\n{i+1}. {actionsNames[i]}"
+                string += f'\n{i+1}. {actionsNames[i]}'
 
             # not int handling could be nice
             select = int(input(string + '\n'))-1
@@ -108,6 +110,13 @@ class Character:
     def selectTarget(self):
         if len(teams['enemy']) == 1:
             return teams['enemy'][0]
+        else:
+            hostileTeam = teams['enemy'] if self.team == 'friend' else teams['friend']
+            string = textwrap.dedent(f'\n[Select target]')
+            for i in range(len(hostileTeam)):
+                string += f"\n{i+1}. {hostileTeam[i].nickname}"
+            select = int(input(string + '\n'))-1
+            return hostileTeam[select]
 
     def baseAttack(self, target=None, attackName='ATTACK', damage=None):
         """
@@ -153,7 +162,7 @@ class Warrior(Character):
 
     def characterSheet(self):
         text = super().characterSheet()
-        return text + f"shield   : {self.shield}"
+        return text + f"shield : {self.shield}"
 
     def actionShieldSlam(self, target=None):
         dmg = self.attack + 2
@@ -183,6 +192,7 @@ class Skeleton(Character):
 # FUNCTIONS
 # ----------------------------------
 
+
 def New_Player():
     # New_class = input("Which class would you choose ? (warrior) : ")
     # New_nickname = input("Type your nickname : ")
@@ -191,22 +201,28 @@ def New_Player():
     #     return Warrior(New_nickname, 40, 2, 3, 'friend')
     # else:
     #     return New_Player()
-    return Warrior('New_nickname', 'friend')
+    return Warrior('Player One', 'friend')
 
 
 def Generate_enemies(enemies):
     for enemy, number in enemies.items():
         for i in range(number):
             if enemy == 'zombie':
-                Zombie(nickname=f'{enemy}{i+1}', attack=10)
+                Zombie(nickname=f'{enemy}{i+1}')
             elif enemy == 'skeleton':
                 Skeleton(nickname=f'{enemy}{i+1}')
+
+    string = textwrap.dedent('\n[ENEMIES]')
+    for i in range(len(teams['enemy'])):
+        string += f'\n{i+1}. {teams["enemy"][i].nickname}'
+    print(string)
 
 
 def Generate_turn_order():
     def Select_from(list):
         select = random.choice(list)
-        turn.append(select)
+        if select not in turn:
+            turn.append(select)
         list.pop(list.index(select))
 
     # Permet de perdre la reference a la liste teams (=/= deep copy)
@@ -226,13 +242,14 @@ def Generate_turn_order():
 # PROGRAM
 # ----------------------------------
 
+
 levels = {
     1: {'zombie': 1},
-    2: {'zombie': 2, 'skeleton': 1}
+    2: {'zombie': 1, 'skeleton': 1}
 }
 
 player1 = New_Player()
-# print(player1.characterSheet())
+print(player1.characterSheet())
 
 # Loop on levels
 levelIndex = 0
@@ -249,5 +266,3 @@ for level, enemies in levels.items():
         playingCharacter.turn()
 
     print(f'\n[LEVEL {levelIndex} FINISHED]')
-
-# print(teams)
